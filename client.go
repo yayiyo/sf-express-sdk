@@ -1,17 +1,17 @@
 package sf
 
 import (
-	`crypto/md5`
-	`encoding/base64`
-	`encoding/json`
-	`fmt`
-	`io/ioutil`
-	`net/http`
-	`net/url`
-	`time`
+	"crypto/md5"
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"time"
 
-	`github.com/google/uuid`
-	`github.com/pkg/errors`
+	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
 
 type Client struct {
@@ -42,7 +42,7 @@ func (c *Client) do(msgData []byte, serviceCode string) (int, []byte, error) {
 	}
 	digest := base64.StdEncoding.EncodeToString(md.Sum(nil))
 	// generate request id
-	uuid, err := uuid.NewUUID()
+	uuID, err := uuid.NewUUID()
 	if err != nil {
 		err = errors.Wrap(err, "generate uuid err")
 		return http.StatusInternalServerError, nil, err
@@ -50,7 +50,7 @@ func (c *Client) do(msgData []byte, serviceCode string) (int, []byte, error) {
 
 	postData := url.Values{}
 	postData.Add("partnerID", c.PartnerID)
-	postData.Add("requestID", uuid.String())
+	postData.Add("requestID", uuID.String())
 	postData.Add("serviceCode", serviceCode)
 	postData.Add("timestamp", fmt.Sprintf("%d", timestamp))
 	postData.Add("msgDigest", digest)
@@ -102,6 +102,10 @@ func (c *Client) Do(data interface{}, serviceCode string) (map[string]interface{
 
 	if !apiData.Success {
 		return nil, errors.New(fmt.Sprintf("errorCode: %s errorMsg: %s", apiData.ErrorCode, apiData.ErrorMsg))
+	}
+
+	if apiData.MsgData == nil {
+		return nil, nil
 	}
 
 	return apiData.MsgData.(map[string]interface{}), nil

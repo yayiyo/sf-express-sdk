@@ -1,8 +1,8 @@
 package sf
 
 import (
-	`encoding/json`
-	`fmt`
+	"encoding/json"
+	"fmt"
 )
 
 // CreateOrder 功能描述
@@ -105,6 +105,95 @@ func (c *Client) QuerySFWaybill(q *QuerySFWaybillReq) (*QuerySFWaybillResp, erro
 		return nil, err
 	}
 	res := &QuerySFWaybillResp{}
+	err = json.Unmarshal(d, res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+// GetSubMailNo 子单号申请接口
+// 文档地址 https://open.sf-express.com/Api/ApiDetails?level3=816719&interName=%E5%AD%90%E5%8D%95%E5%8F%B7%E7%94%B3%E8%AF%B7%E6%8E%A5%E5%8F%A3-EXP_RECE_GET_SUB_MAILNO
+/**
+ * 客户在下单成功后 ，因业务场景需要可以调用此接口获取更多的子单号数。但不能超过配置的最大数/1200个
+ */
+func (c *Client) GetSubMailNo(s *SubMailNoReq) (*SubMailNoResp, error) {
+	data, err := c.Do(s, serviceCodeGetSubMailNo)
+	if err != nil {
+		return nil, err
+	}
+
+	d, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	res := &SubMailNoResp{}
+	err = json.Unmarshal(d, res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+// SearchOrderResp 订单结果查询接口
+// 文档地址 https://open.sf-express.com/Api/ApiDetails?level3=299038&interName=%E8%AE%A2%E5%8D%95%E7%BB%93%E6%9E%9C%E6%9F%A5%E8%AF%A2%E6%8E%A5%E5%8F%A3-EXP_RECE_SEARCH_ORDER_RESP
+/**
+ * 因Internet环境下，网络不是绝对可靠，用户系统下订单到顺丰后，
+ * 不一定可以收到顺丰系统返回的数据，此接口用于在未收到返回数据时，
+ * 查询订单创建接口客户订单当前的处理情况。
+ */
+func (c *Client) SearchOrderResp(s *SearchOrderReq) (*SearchOrderResp, error) {
+	data, err := c.Do(s, serviceCodeSearchOrderResp)
+	if err != nil {
+		return nil, err
+	}
+
+	d, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	res := &SearchOrderResp{}
+	err = json.Unmarshal(d, res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+// DeliveryNotice 派送通知接口
+// 文档地址 https://open.sf-express.com/Api/ApiDetails?level3=184259&interName=%E6%B4%BE%E9%80%81%E9%80%9A%E7%9F%A5%E6%8E%A5%E5%8F%A3-EXP_RECE_DELIVERY_NOTICE
+/**
+ * 派件通知接口，双11等大促活动前，电商平台有预付款功能。
+ * 消费者只需要提前缴纳就可以在双十一当前抵扣，获取更大的优惠。
+ * 预付完成后商家会提前将产品交给顺丰，保存到离收货地址最近的仓。
+ * 大促活动当天消费者全款支付完毕后，商家会通知顺丰送达客户
+ */
+func (c *Client) DeliveryNotice(d *DeliveryNoticeReq) error {
+	_, err := c.Do(d, serviceCodeDeliveryNotice)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// CreateExchangeOrder 换货下单接口
+// 文档地址 https://open.sf-express.com/Api/ApiDetails?level3=428991&interName=%E6%8D%A2%E8%B4%A7%E4%B8%8B%E5%8D%95%E6%8E%A5%E5%8F%A3-EXP_RECE_CREATE_EXCHANGE_ORDER
+/**
+ *	客户系统向顺丰下发订单
+ *	为订单分配运单号
+ *	筛单
+ */
+func (c *Client) CreateExchangeOrder(ceo *ExchangeOrderReq) (*ExchangeOrderResp, error) {
+	data, err := c.Do(ceo, serviceCodeCreateExchangeOrder)
+	if err != nil {
+		return nil, err
+	}
+
+	d, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	res := &ExchangeOrderResp{}
 	err = json.Unmarshal(d, res)
 	if err != nil {
 		return nil, err

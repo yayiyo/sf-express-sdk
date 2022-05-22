@@ -1,6 +1,6 @@
 package sf
 
-import `time`
+import "time"
 
 // 必填 条件：C 是：T 否：F
 // 《增值服务产品表》 https://open.sf-express.com/developSupport/734349?activeIndex=313317
@@ -317,4 +317,62 @@ type WaybillFee struct {
 	ServiceProdCode    string  `json:"serviceProdCode"`    // 增值服务代码
 	InsuredValue       string  `json:"insuredValue"`       // 保价金额
 	CustomerAcctCode   string  `json:"customerAcctCode"`   // 月结账号
+}
+
+type SubMailNoReq struct {
+	OrderId           string           `json:"orderId"`           // T 客户订单号
+	ParcelQty         int64            `json:"parcelQty"`         // T 子单号数
+	WaybillNoInfoList []*WaybillNoInfo `json:"waybillNoInfoList"` // F 顺丰运单号子单申请需要指定每个子包裹的长宽高提交重量时需要传入此参数
+}
+
+type SubMailNoResp struct {
+	OrderId           string           `json:"orderId"`           // T 客户订单号
+	ParcelQty         int64            `json:"parcelQty"`         // F 子单号数
+	WaybillNoInfoList []*WaybillNoInfo `json:"waybillNoInfoList"` // T 顺丰运单号
+}
+
+type SearchOrderReq struct {
+	OrderId    string `json:"orderId"`    // T 客户订单号
+	SearchType string `json:"searchType"` // F 查询类型：1正向单 2退货单
+	Language   string `json:"language"`   // F 语言
+}
+
+type SearchOrderResp struct {
+	OrderId             string            `json:"orderId"`             // T 客户订单号
+	OriginCode          string            `json:"originCode"`          // F 原寄地区域代码，可用于顺丰电子运单标签打印
+	DestCode            string            `json:"destCode"`            // F 目的地区域代码，可用 于顺丰电子运单标签打印
+	FilterResult        string            `json:"filterResult"`        // F 筛单结果： 1：人工确认 2：可收派 3：不可以收派
+	ReturnExtraInfoList []*ExtraInfo      `json:"returnExtraInfoList"` // F 返回信息扩展属性
+	WaybillNoInfoList   []*WaybillNoInfo  `json:"waybillNoInfoList"`   // F 顺丰运单号
+	RouteLabelInfo      []*RouteLabelInfo `json:"routeLabelInfo"`      // F 路由标签数据
+}
+
+type DeliveryNoticeReq struct {
+	WaybillNo string `json:"waybillNo"` // T 运单号
+	DataType  string `json:"dataType"`  // T 71：派送通知 72：通知退回
+	Language  string `json:"language"`  // F 语言：处理错误时返回的消息的语言；zh-CN，中文简体；zh-TW；zh-HK；zh-MO；US；
+}
+
+type ExchangeOrderReq struct {
+	Language        string `json:"language"`        // T 返回描述语语言 0：中文 1：英文 2：繁体
+	OrderId         string `json:"orderId"`         // T 客户订单号
+	OrigOrderId     string `json:"origOrderId"`     //   原订单号
+	OrigWaybillNo   string `json:"origWaybillNo"`   //   原运单号
+	BizTemplateCode string `json:"bizTemplateCode"` // F 业务配置代码，业务配置代码指BSP针对客户业务需求配置的一套接口处理逻辑，一个接入编码可对应多个业务配置代码。
+	ExchangeType    int    `json:"exchangeType"`    // T 换货类型 2:收件后换，3:退换一体
+	IsCheck         string `json:"isCheck"`         //   是否验货, 1-验货，其他-不验货
+	NewOrder        *Order `json:"newOrder"`        // T 新货订单
+	OldOrder        *Order `json:"oldOrder"`        // T 旧货订
+}
+
+type ExchangeOrderResp struct {
+	OrderId        string            `json:"orderId"`        // T 客户订单号
+	NewWaybill     []*WaybillInfo    `json:"newWaybill"`     // F 新货运单号
+	OldWaybill     []*WaybillInfo    `json:"oldWaybill"`     // F 旧货运单号
+	NewOriginCode  string            `json:"newOriginCode"`  //   新货的原寄地代码
+	NewDestCode    string            `json:"newDestCode"`    //   新货的目的地代码
+	OldDestCode    string            `json:"oldDestCode"`    //   旧货的目的地代码
+	FilterResult   int               `json:"filterResult"`   // F 筛单结果： 1：人工确认 2：可收派 3：不可以收派
+	Remark         string            `json:"remark"`         // C 如果filter_result = 3时为必填，不可以收派的原因代码： 1：收方超范围 2：派方超范围 3-：其它原因 高峰管控提示信息 【数字】：【高峰管控提示信息】(如 4：温馨提示 ，1：春运延时)
+	RouteLabelInfo []*RouteLabelInfo `json:"routeLabelInfo"` // C 下单路由标签新数据结构参考下单接口 （和标准下单返回一致）
 }
