@@ -100,7 +100,7 @@ func (c *Client) Do(data interface{}, serviceCode string) (interface{}, error) {
 		return nil, err
 	}
 
-	if !apiData.Success || apiData.ErrorCode != "S0000" {
+	if !apiData.Success || apiData.ErrorCode != errorCodeS0000 {
 		return nil, errors.New(fmt.Sprintf("errorCode: %s errorMsg: %s", apiData.ErrorCode, apiData.ErrorMsg))
 	}
 

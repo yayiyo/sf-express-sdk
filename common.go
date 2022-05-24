@@ -143,3 +143,14 @@ func suggestionMsg(code int) string {
 	}
 	return ""
 }
+
+const (
+	errorCodeS0000 = "S0000" // 成功
+	errorCodeS0001 = "S0001" // 非法的JSON格式
+	errorCodeS0002 = "S0002" // 必填参数%s为空
+	errorCodeS0003 = "S0003" // 系统发生数据错误或运行时异常
+	errorCodeS0004 = "S0004" // 参数%s超过最大长度%d
+	errorCodeS0005 = "S0005" // 参数超过最大值
+	errorCodeS0006 = "S0006" // 参数%s不能小于%d
+	errorCodeS0007 = "S0007" // 参数%s数据类型错误
+)
