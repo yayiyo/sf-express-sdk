@@ -3,7 +3,10 @@ package sf
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 )
+
+// 通用寄件类API
 
 // CreateOrder 功能描述
 // 文档地址 https://open.sf-express.com/Api/ApiDetails?level3=819535&interName=%E4%B8%8B%E8%AE%A2%E5%8D%95%E6%8E%A5%E5%8F%A3-EXP_RECE_CREATE_ORDER
@@ -13,6 +16,13 @@ import (
 //  ● 筛单
 //  ● 路由轨迹(可选)
 func (c *Client) CreateOrder(req *CreateOrderReq) (*Order, error) {
+	var err error
+	if !req.SendStartTm.Equal(time.Time{}) {
+		req.SendStartTm, err = time.Parse(sfTimeTmp, req.SendStartTm.String())
+		if err != nil {
+			return nil, err
+		}
+	}
 	data, err := c.Do(req, serviceCodeCreateOrder)
 	if err != nil {
 		return nil, err
@@ -48,8 +58,14 @@ func (c *Client) SearchRoutes(s *SearchRoutesReq) ([]*RoutesResp, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	resp := data["routeResps"]
+	var (
+		rd = make(map[string]interface{})
+		ok bool
+	)
+	if rd, ok = data.(map[string]interface{}); !ok {
+		return nil, fmt.Errorf("the response data %v is not map[string]interface type", data)
+	}
+	resp := rd["routeResps"]
 	fmt.Println(resp)
 	d, err := json.Marshal(resp)
 	if err != nil {
@@ -72,6 +88,21 @@ func (c *Client) SearchRoutes(s *SearchRoutesReq) ([]*RoutesResp, error) {
 	注意：订单取消之后，订单号也是不能重复利用的。
 */
 func (c *Client) UpdateOrder(u *UpdateOrderReq) (*UpdateOrderResp, error) {
+	var err error
+	if !u.SendStartTm.Equal(time.Time{}) {
+		u.SendStartTm, err = time.Parse(sfTimeTmp, u.SendStartTm.String())
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if !u.PickupAppointEndtime.Equal(time.Time{}) {
+		u.PickupAppointEndtime, err = time.Parse(sfTimeTmp, u.PickupAppointEndtime.String())
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	data, err := c.Do(u, serviceCodeUpdateOrder)
 	if err != nil {
 		return nil, err
@@ -194,6 +225,53 @@ func (c *Client) CreateExchangeOrder(ceo *ExchangeOrderReq) (*ExchangeOrderResp,
 		return nil, err
 	}
 	res := &ExchangeOrderResp{}
+	err = json.Unmarshal(d, res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+// WantedIntercept  截单转寄退回接口
+// 文档地址 https://open.sf-express.com/Api/ApiDetails?level3=332612&interName=%E6%88%AA%E5%8D%95%E8%BD%AC%E5%AF%84%E9%80%80%E5%9B%9E%E6%8E%A5%E5%8F%A3-EXP_RECE_WANTED_INTERCEPT
+/**
+ * 客户可通过接口通缉拦截接口对运单进行通缉拦截
+ */
+func (c *Client) WantedIntercept(w *WantedInterceptReq) error {
+	_, err := c.Do(w, serviceCodeWantedIntercept)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// CreateReverseOrder 仓配退货下单接口
+// 文档地址 https://open.sf-express.com/Api/ApiDetails?level3=393165&interName=%E4%BB%93%E9%85%8D%E9%80%80%E8%B4%A7%E4%B8%8B%E5%8D%95%E6%8E%A5%E5%8F%A3-EXP_RECE_CREATE_REVERSE_ORDER
+/**
+ * 退货下单接口根据客户需要,可提供以下四个功能:
+ *	● 客户系统向顺丰下发退货订单
+ *	● 为订单分配运单号
+ *	● 筛单
+ *	● 路由注册（可选）
+ */
+func (c *Client) CreateReverseOrder(cr *ReverseOrder) (*ReverseOrder, error) {
+	var err error
+	if !cr.SendStartTm.Equal(time.Time{}) {
+		cr.SendStartTm, err = time.Parse(sfTimeTmp, cr.SendStartTm.String())
+		if err != nil {
+			return nil, err
+		}
+	}
+	data, err := c.Do(cr, serviceCodeCreateReverseOrder)
+	if err != nil {
+		return nil, err
+	}
+
+	d, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	res := &ReverseOrder{}
 	err = json.Unmarshal(d, res)
 	if err != nil {
 		return nil, err

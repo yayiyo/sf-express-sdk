@@ -68,7 +68,7 @@ func (c *Client) do(msgData []byte, serviceCode string) (int, []byte, error) {
 	return resp.StatusCode, respData, nil
 }
 
-func (c *Client) Do(data interface{}, serviceCode string) (map[string]interface{}, error) {
+func (c *Client) Do(data interface{}, serviceCode string) (interface{}, error) {
 	msgData, err := json.Marshal(data)
 	if err != nil {
 		err = errors.Wrap(err, "marshal data err")
@@ -100,13 +100,9 @@ func (c *Client) Do(data interface{}, serviceCode string) (map[string]interface{
 		return nil, err
 	}
 
-	if !apiData.Success {
+	if !apiData.Success || apiData.ErrorCode != "S0000" {
 		return nil, errors.New(fmt.Sprintf("errorCode: %s errorMsg: %s", apiData.ErrorCode, apiData.ErrorMsg))
 	}
 
-	if apiData.MsgData == nil {
-		return nil, nil
-	}
-
-	return apiData.MsgData.(map[string]interface{}), nil
+	return apiData.MsgData, nil
 }

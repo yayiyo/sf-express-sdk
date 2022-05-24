@@ -148,6 +148,8 @@ type CargoDetail struct {
 	SourceArea                    string  `json:"sourceArea"`                    // C 原产地国别， 跨境件报关需要填写
 	TaxNo                         string  `json:"taxNo"`                         // F 商品行邮税号
 	GoodsCode                     string  `json:"goodsCode"`                     // F 商品编号
+	CargoSku                      string  `json:"cargoSku"`                      // F 商品编码
+	VisualInspection              string  `json:"visualInspection"`              // F 外观
 	Brand                         string  `json:"brand"`                         // F 货物品牌
 	Specifications                string  `json:"specifications"`                // F 货物规格型号
 	Manufacturer                  string  `json:"manufacturer"`                  // F 生产厂家
@@ -161,6 +163,7 @@ type CargoDetail struct {
 	CargoID                       string  `json:"cargoId"`                       // F 货物id（逆向物流）
 	IntelligentInspection         int     `json:"intelligentInspection"`         // F 智能验货标识(1-是,0-否) （逆向物流）
 	SNCode                        string  `json:"snCode"`                        // F 货物标识码（逆向物流）
+	CheckRemark                   string  `json:"checkRemark"`                   // F 收货备注，如果商品需要收派员验货则要填写这一项
 	StateBarCode                  string  `json:"stateBarCode"`                  // F 国条码
 }
 
@@ -375,4 +378,55 @@ type ExchangeOrderResp struct {
 	FilterResult   int               `json:"filterResult"`   // F 筛单结果： 1：人工确认 2：可收派 3：不可以收派
 	Remark         string            `json:"remark"`         // C 如果filter_result = 3时为必填，不可以收派的原因代码： 1：收方超范围 2：派方超范围 3-：其它原因 高峰管控提示信息 【数字】：【高峰管控提示信息】(如 4：温馨提示 ，1：春运延时)
 	RouteLabelInfo []*RouteLabelInfo `json:"routeLabelInfo"` // C 下单路由标签新数据结构参考下单接口 （和标准下单返回一致）
+}
+
+type WantedInterceptReq struct {
+	WaybillNo      string          `json:"waybillNo"`      // T	运单号
+	ServiceCode    string          `json:"serviceCode"`    // T	1转寄2退回3优派4再派5改自取（改派-其他自取点取件）6改派送（上门派送）7更改派送时间8修改收件人信息9更改付款方式10修改代收货款12作废
+	Role           string          `json:"role"`           // T	发起方1（寄方）2（收方）3（第三方）
+	PayMode        string          `json:"payMode"`        // T	付款方式：1寄付 2到付 3转第三方月结 4寄付月结
+	MonthlyCardNo  string          `json:"monthlyCardNo"`  // F	月结卡号如果是月结账户，必填字段。付款方式为月结时，必填字段。修改代收货款，必填字段
+	ProductType    string          `json:"productType"`    // F	产品类型
+	CodAmount      float64         `json:"codAmount"`      // F	代收货款金额
+	DeliverDate    string          `json:"deliverDate"`    // F 派送日期，形如“2018-05-02”
+	DeliverTimeMin string          `json:"deliverTimeMin"` // F 派送最早时间，形如“09:00”
+	DeliverTimeMax string          `json:"deliverTimeMax"` // F 派送最晚时间，形如“12:00”
+	SelfPickPoint  string          `json:"selfPickPoint"`  // F 自取点 1-合作点 2-快递柜 3-网点 4中转场
+	NewDestAddress *NewDestAddress `json:"newDestAddress"` // F 新目的地改联系人业务请携带姓名及手机号转寄、退回业务必须携带，撤销转寄、退回不携带改自取必须携带
+}
+
+type NewDestAddress struct {
+	Country      string `json:"country"`      // F 国家，默认中国
+	CountryCode  string `json:"countryCode"`  // F 国家编码，默认CN
+	Province     string `json:"province"`     // T 省，如广东省
+	City         string `json:"city"`         // T	市，如深圳市
+	County       string `json:"county"`       // T 区，如南山区
+	Address      string `json:"address"`      // T 详细地址，不包含省市区，如粤海街道高新区1C栋二楼
+	Company      string `json:"company"`      // F 公司
+	Contact      string `json:"contact"`      // F 联系人姓名，如黄飞鸿
+	Phone        string `json:"phone"`        // F 电话，如18012345678
+	AreaCode     string `json:"areaCode"`     // F 网点代码，如755WQ
+	LocationCode string `json:"locationCode"` // F 城市代码
+}
+
+type ReverseOrder struct {
+	Language        string         `json:"language"`        // F 响应报文的语言，缺省值为zh-CN，目前支持以下值zh-CN表示中文简体，zh-TW或zh-HK或zh-MO表示中文繁体，en表示英文
+	OrderId         string         `json:"orderId"`         // T 客户订单号
+	CargoDetails    []*CargoDetail `json:"cargoDetails"`    // T 拖寄物信息
+	OrigOrderId     string         `json:"origOrderId"`     // F 原订单号
+	OldClientCode   []interface{}  `json:"oldClientCode"`   // F 原顾客编码
+	ServiceList     []*Service     `json:"serviceList"`     // F 增值服务信息
+	ContactInfoList []*ContactInfo `json:"contactInfoList"` //	 收寄双方信息
+	MonthlyCard     string         `json:"monthlyCard"`     // C 顺丰月结卡号
+	PayMethod       int            `json:"payMethod"`       // F 付款方式，支持以下值： 1:寄方付 2:收方付 3:第三方付
+	ExpressTypeId   int            `json:"expressTypeId"`   // F 快件产品类别，支持附录《快件产品类别表》的产品编码值，仅可使用与顺丰销售约定的快件产品。
+	SendStartTm     time.Time      `json:"sendStartTm"`     // F 要求上门取件开始时间，格式：YYYY-MM-DD HH24:MM:SS，示例：2012-7-30 09:30:00。
+	IsCheck         string         `json:"isCheck"`         // F 是否验货, 1-验货，其他-不验货
+	ShopName        string         `json:"shopName"`        // F 商家店铺名称
+	OrigWaybillNo   string         `json:"origWaybillNo"`   // C 原运单号
+	OrderType       string         `json:"orderType"`       // F 订单类型：退货订单，维修订单
+	BizTemplateCode string         `json:"bizTemplateCode"` // F 业务配置代码，业务配置代码指BSP针对客户业务需求配置的一套接口处理逻辑，一个接入编码可对应多个业务配置代码。
+	RefundAmount    float64        `json:"refundAmount"`    // F 退款金额
+	Volume          float64        `json:"volume"`          // F 托寄物体积
+	Remark          string         `json:"remark"`          // F 备注
 }

@@ -1,5 +1,7 @@
 package sf
 
+var sfTimeTmp = "2006-01-02 15:04:05"
+
 //
 const (
 	// 统一接入平台校验成功，调用后端服务成功；
@@ -44,6 +46,7 @@ var resultCodeText = map[string]string{
 
 // ServiceCode
 const (
+	// 通用寄件类
 	serviceCodeCreateOrder         = "EXP_RECE_CREATE_ORDER"          // 下订单
 	serviceCodeSearchRoutes        = "EXP_RECE_SEARCH_ROUTES"         // 路由查询
 	serviceCodeUpdateOrder         = "EXP_RECE_UPDATE_ORDER"          // 订单确认/取消
@@ -56,6 +59,11 @@ const (
 	serviceCodeCreateReverseOrder  = "EXP_RECE_CREATE_REVERSE_ORDER"  // 仓配退货下单
 	serviceCodeCancelReverseOrder  = "EXP_RECE_CANCEL_REVERSE_ORDER"  // 仓配退货消单
 	serviceCodePreOrder            = "EXP_RECE_PRE_ORDER"             // 预下单
+
+	// 服务查询类
+	serviceCodeFilterOrderBSP     = "EXP_RECE_FILTER_ORDER_BSP"     // 订单筛选
+	serviceCodeValidateWayBillNo  = "EXP_RECE_VALIDATE_WAYBILLNO"   // 运单号合法性校验
+	serviceCodeQueryGISDepartment = "EXP_RECE_QUERY_GIS_DEPARTMENT" // 服务网点查询
 )
 
 // Error Code https://open.sf-express.com/developSupport/976720?activeIndex=146623
