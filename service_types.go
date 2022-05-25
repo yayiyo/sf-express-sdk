@@ -62,3 +62,64 @@ type Result struct {
 	Id         string `json:"id"`
 	Longitude  int    `json:"longitude"`
 }
+
+type QueryDeliverTMReq struct {
+	BusinessType  string   `json:"businessType"`  // T 快件产品：可以为空，为空时查询顺丰支持的所有业务类型。不为空时以数字代码业务类型，例如：1：表示“”2：表示“顺丰特惠”5：表示“顺丰次晨”6：表示“即日件
+	Weight        float64  `json:"weight"`        // F 货物总重量，包含子母件，单位千克，精确到小数点后2位，如果提供此值，必须>0。
+	Volume        float64  `json:"volume"`        // F 货物的体积（长、宽、高分别以厘米为单位计算体积），精确到小数点后2位。
+	ConsignedTime string   `json:"consignedTime"` // F 寄件时间，格式为YYYY-MM-DD HH24:MM:SS，示例2013-12-27 17:54:20。
+	SearchPrice   string   `json:"searchPrice"`   // F 1：表示查询含价格的接口0：表示查询不含价格的接口 备注：限制只能为0, 1或者不传searchPrice，不可以为空, null
+	DestAddress   *Address `json:"destAddress"`   // T 目的地信息
+	SrcAddress    *Address `json:"srcAddress"`    // T 原寄地信息
+}
+
+type Address struct {
+	Province string `json:"province"` // C 目的地所在省份，字段填写要求：必须是标准的省名称称谓 如：广东省; 如果是直辖市，请直接传北京、上海等，如果字段code为空时为必填。
+	City     string `json:"city"`     // C 目的地所在城市，必须是标准的城市称谓 如：深圳市，如果字段code为空时为必填。
+	District string `json:"district"` // F 目的地所在县/区，必须是标准的县/区称谓，示例：“福田区”。
+	Address  string `json:"address"`  // F 目的地详细地址，此详细地址需包含省市信息，以提高地址识别的成功率，示例：“广东省深圳市福田区新洲十一街万基商务大厦10楼”。
+	Code     string `json:"code"`     // C 目的地区域代码，如果填写了此项，则查询时忽略省市区具体地址，如果不填此项，则综合省市区具体地址识别区域代码，字段province或city为空时为必填，示例：020、755。
+}
+
+type QueryDeliverTMResp struct {
+	DeliverTmDto []*DeliverTM `json:"deliverTmDto"`
+}
+
+type DeliverTM struct {
+	BusinessType     string  `json:"businessType"`     // 快件产品
+	BusinessTypeDesc string  `json:"businessTypeDesc"` // 快件产品描述
+	DeliverTime      string  `json:"deliverTime"`      // 承诺时间
+	Fee              float64 `json:"fee"`              // 价格
+	SearchPrice      string  `json:"searchPrice"`      // 是否查询价格（1, 返回价格；0，不返回价格）
+	CloseTime        string  `json:"closeTime"`        // 截单时间
+}
+
+type SearchPromiseTmReq struct {
+	SearchNo  string   `json:"searchNo"`  // T 顺丰运单号
+	CheckType int      `json:"checkType"` // F 校验类型 1，电话号码校验 2，月结卡号校验
+	CheckNos  []string `json:"checkNos"`  // T 校验值 当校验类型为1时传电话号码 当校验类型为2时传月结卡号
+}
+
+type SearchPromiseTmResp struct {
+	SearchNo  string `json:"searchNo"`  // T 顺丰运单号
+	PromiseTm string `json:"promiseTm"` // T 预计派件时间格式:YYYY-MM-DD HH24:mm:SS
+}
+
+type CheckPickUpTimeReq struct {
+	Address     string `json:"address"`     // T 地址
+	CityCode    string `json:"cityCode"`    // T 城市代码
+	AddressType string `json:"addressType"` // T 地址类型 （1：寄件地址，2：收件地址）
+	SendTime    string `json:"sendTime"`    // T 预约上门时间(yyyy-MM-dd HH:mm:ss)
+	SysCode     string `json:"sysCode"`     // T 来源系统
+	Version     string `json:"version"`     // F version:不传 只返回是否在服务时间范围 1.1 返回是否在服务时间范围, 并返回服务时间段
+	Province    string `json:"province"`    // F 省，如果没有cityCode，则通过省市区转换
+	City        string `json:"city"`        // F 市
+	County      string `json:"county"`      // F 区
+}
+
+type CheckPickUpTimeResp struct {
+	Status  bool        `json:"status"`
+	EndTm   string      `json:"endTm"`
+	StartTm string      `json:"startTm"`
+	System  interface{} `json:"system"`
+}

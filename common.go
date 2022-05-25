@@ -1,7 +1,5 @@
 package sf
 
-var sfTimeTmp = "2006-01-02 15:04:05"
-
 //
 const (
 	// 统一接入平台校验成功，调用后端服务成功；
@@ -64,6 +62,9 @@ const (
 	serviceCodeFilterOrderBSP     = "EXP_RECE_FILTER_ORDER_BSP"     // 订单筛选
 	serviceCodeValidateWayBillNo  = "EXP_RECE_VALIDATE_WAYBILLNO"   // 运单号合法性校验
 	serviceCodeQueryGISDepartment = "EXP_RECE_QUERY_GIS_DEPARTMENT" // 服务网点查询
+	serviceCodeQueryDeliverTm     = "EXP_RECE_QUERY_DELIVERTM"      // 时效标准及价格查询
+	serviceCodeSearchPromiseTm    = "EXP_RECE_SEARCH_PROMITM"       // 预计派送时间查询
+	serviceCodeCheckPickUpTime    = "EXP_EXCE_CHECK_PICKUP_TIME"    // 揽件服务时间校验
 )
 
 // Error Code https://open.sf-express.com/developSupport/976720?activeIndex=146623

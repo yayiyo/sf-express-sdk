@@ -64,3 +64,77 @@ func (c *Client) QueryGISDepartment(q *QueryGISDepartmentReq) (*QueryGISDepartme
 	}
 	return res, nil
 }
+
+// QueryDeliverTm 时效标准及价格查询
+// 文档地址 https://open.sf-express.com/Api/ApiDetails?level3=279416&interName=%E6%97%B6%E6%95%88%E6%A0%87%E5%87%86%E5%8F%8A%E4%BB%B7%E6%A0%BC%E6%9F%A5%E8%AF%A2%E6%8E%A5%E5%8F%A3-EXP_RECE_QUERY_DELIVERTM
+/**
+ * 客户可通过接口查询从特定原寄地寄特定目的地的时效和价格
+ */
+func (c *Client) QueryDeliverTm(q *QueryDeliverTMReq) (*QueryDeliverTMResp, error) {
+	data, err := c.Do(q, serviceCodeQueryDeliverTm)
+	if err != nil {
+		return nil, err
+	}
+	d, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	res := &QueryDeliverTMResp{}
+	err = json.Unmarshal(d, res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+// SearchPromiseTm 预计派送时间查询
+// 文档地址 https://open.sf-express.com/Api/ApiDetails?level3=226162&interName=%E9%A2%84%E8%AE%A1%E6%B4%BE%E9%80%81%E6%97%B6%E9%97%B4%E6%8E%A5%E5%8F%A3-EXP_RECE_SEARCH_PROMITM
+/**
+ * 此功能主要是根据运单号查询预计派件时间
+ */
+func (c *Client) SearchPromiseTm(q *SearchPromiseTmReq) (*SearchPromiseTmResp, error) {
+	data, err := c.Do(q, serviceCodeSearchPromiseTm)
+	if err != nil {
+		return nil, err
+	}
+	d, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	res := &SearchPromiseTmResp{}
+	err = json.Unmarshal(d, res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+// CheckPickUpTime 揽件服务时间校验
+// 文档地址 https://open.sf-express.com/Api/ApiDetails?level3=888570&interName=%E6%8F%BD%E4%BB%B6%E6%9C%8D%E5%8A%A1%E6%97%B6%E9%97%B4%E6%A0%A1%E9%AA%8C%E6%8E%A5%E5%8F%A3-EXP_EXCE_CHECK_PICKUP_TIME
+/**
+ * 客户系统通过该接口检查是否为揽件服务时间范围
+ */
+func (c *Client) CheckPickUpTime(cp *CheckPickUpTimeReq) (*CheckPickUpTimeResp, error) {
+	data, err := c.Do(cp, serviceCodeCheckPickUpTime)
+	if err != nil {
+		return nil, err
+	}
+
+	d, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	res := &CheckPickUpTimeResp{}
+	var rd interface{}
+	// 返回值是状态（bool）
+	if cp.Version == "V1.0" {
+		rd = &res.Status
+	} else {
+		rd = res
+	}
+	err = json.Unmarshal(d, rd)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}

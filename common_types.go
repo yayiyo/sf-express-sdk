@@ -1,7 +1,5 @@
 package sf
 
-import "time"
-
 // 必填 条件：C 是：T 否：F
 // 《增值服务产品表》 https://open.sf-express.com/developSupport/734349?activeIndex=313317
 // 《快件产品类别表》 https://open.sf-express.com/developSupport/734349?activeIndex=324604
@@ -28,7 +26,7 @@ type CreateOrderReq struct {
 	Volume                     float64          `json:"volume"`                     // F 订单货物总体积，单位立方厘米, 精确到小数点后3位，会用于计抛 (是否计抛具体商务沟通中 双方约定)
 	TotalWeight                float64          `json:"totalWeight"`                // C 订单货物总重量（郑州空港海关必填）， 若为子母件必填， 单位千克， 精确到小数点后3位，如果提供此值， 必须>0 (子母件需>6)
 	TotalNetWeight             float64          `json:"totalNetWeight"`             // F 商品总净重
-	SendStartTm                time.Time        `json:"sendStartTm"`                // F 要求上门取件开始时间， 格式： YYYY-MM-DD HH24:MM:SS， 示例： 2012-7-30 09:30:00
+	SendStartTm                string           `json:"sendStartTm"`                // F 要求上门取件开始时间， 格式： YYYY-MM-DD HH24:MM:SS， 示例： 2012-7-30 09:30:00
 	IsDocall                   int              `json:"isDocall"`                   // F 是否通过手持终端 通知顺丰收派 员上门收件，支持以下值： 1：要求 0：不要求
 	IsSignBack                 int              `json:"isSignBack"`                 // F 是否返回签回单 （签单返还）的运单号， 支持以下值： 1：要求 0：不要求
 	CustReferenceNo            string           `json:"custReferenceNo"`            // F 客户参考编码：如客户原始订单号
@@ -49,6 +47,15 @@ type CreateOrderReq struct {
 	IsGenWaybillNo             int              `json:"isGenWaybillNo"`             // F 是否需求分配运单号1：分配 0：不分配（若带单号下单，请传值0）
 }
 
+type T struct {
+	WaybillNoInfoList []*WaybillNoInfo  `json:"waybillNoInfoList"`
+	RouteLabelInfo    []*RouteLabelInfo `json:"routeLabelInfo"`
+	ContactInfoList   interface{}       `json:"contactInfoList"`
+	SendStartTm       interface{}       `json:"sendStartTm"`
+	CustomerRights    interface{}       `json:"customerRights"`
+	ExpressTypeId     interface{}       `json:"expressTypeId"`
+}
+
 type Order struct {
 	OrderId                   string            `json:"orderId"`                   // T 客户订单号
 	OriginCode                string            `json:"originCode"`                // F 原寄地区域代码，可用于顺丰 电子运单标签打印
@@ -63,48 +70,70 @@ type Order struct {
 	ReturnExtraInfoList       []*ExtraInfo      `json:"returnExtraInfoList"`       // F 返回信息扩展属性
 	WaybillNoInfoList         []*WaybillNoInfo  `json:"waybillNoInfoList"`         // F 顺丰运单号
 	RouteLabelInfo            []*RouteLabelInfo `json:"routeLabelInfo"`            // T 路由标签，除少量特殊场景用户外，其余均会返回
+	ContactInfoList           interface{}       `json:"contactInfoList"`
+	SendStartTm               interface{}       `json:"sendStartTm"`
+	CustomerRights            interface{}       `json:"customerRights"`
+	ExpressTypeId             interface{}       `json:"expressTypeId"`
+	MappingMark               interface{}       `json:"mappingMark"`
+	AgentMailno               interface{}       `json:"agentMailno"`
 }
 
 type RouteLabelInfo struct {
-	Code           string            `json:"code"`           // T	返回调用结果，1000：调用成功； 其他调用失败
-	RouteLabelData []*RouteLabelData `json:"routeLabelData"` // T	路由标签数据详细数据，除少量特殊场景用户外，其余均会返回
-	Message        string            `json:"message"`        // F   失败异常描述
+	Code           string          `json:"code"`           // T	返回调用结果，1000：调用成功； 其他调用失败
+	RouteLabelData *RouteLabelData `json:"routeLabelData"` // T	路由标签数据详细数据，除少量特殊场景用户外，其余均会返回
+	Message        string          `json:"message"`        // F   失败异常描述
 }
 
 type RouteLabelData struct {
-	WaybillNo           string      `json:"waybillNo"`           // F 运单号
-	SourceTransferCode  string      `json:"sourceTransferCode"`  // F 原寄地中转场
-	SourceCityCode      string      `json:"sourceCityCode"`      // F 原寄地城市代码
-	SourceDeptCode      string      `json:"sourceDeptCode"`      // F 原寄地网点代码
-	SourceTeamCode      string      `json:"sourceTeamCode"`      // F 原寄地单元区域
-	DestCityCode        string      `json:"destCityCode"`        // F 目的地城市代码, eg:755
-	DestDeptCode        string      `json:"destDeptCode"`        // F 目的地网点代码, eg:755AQ
-	DestDeptCodeMapping string      `json:"destDeptCodeMapping"` // F 目的地网点代码映射码
-	DestTeamCode        string      `json:"destTeamCode"`        // F 目的地单元区域, eg:001
-	DestTeamCodeMapping string      `json:"destTeamCodeMapping"` // F 目的地单元区域映射码
-	DestTransferCode    string      `json:"destTransferCode"`    // F 目的地中转场
-	DestRouteLabel      string      `json:"destRouteLabel"`      // T 若返回路由标签，则此项必会返回。如果手打是一段码，检查是否地址异常。打单时的路由标签信息如果是大网的路由标签, 这里的值是目的地网点代码, 如果 是同城配的路由标签, 这里的值是根据同城配的设置映射出来的值, 不同的配置结果会不一样, 不能根据-符号切分(如:上海同城配, 可能是:集散点-目的地网点-接驳点, 也有可能是目的地网点代码-集散点-接驳点)
-	ProName             string      `json:"proName"`             // F 产品名称 对应RLS:pro_name
-	CargoTypeCode       string      `json:"cargoTypeCode"`       // F 快件内容: 如:C816、SP601
-	LimitTypeCode       string      `json:"limitTypeCode"`       // F 时效代码, 如:T4
-	ExpressTypeCode     string      `json:"expressTypeCode"`     // F 产品类型, 如:B1
-	CodingMapping       string      `json:"codingMapping"`       // T 入港映射码 eg:S10 地址详细必会返回
-	CodingMappingOut    string      `json:"codingMappingOut"`    // F 出港映射码
-	XBFlag              string      `json:"xbFlag"`              // F XB标志 0:不需要打印XB 1:需要打印XB
-	PrintFlag           string      `json:"printFlag"`           // F 打印标志 返回值总共有9位, 每位只 有0和1两种, 0表示按丰密 面单默认的规则, 1是显示, 顺序如下, 如111110000 表示打印寄方姓名、寄方 电话、寄方公司名、寄方 地址和重量, 收方姓名、收 方电话、收方公司和收方 地址按丰密面单默认规则 1:寄方姓名 2:寄方电话 3:寄方公司名 4:寄方地址 5:重量 6:收方姓名 7:收方电话 8:收方公司名 9:收方地址
-	TwoDimensionCode    string      `json:"twoDimensionCode"`    // F 二维码 根据规则生成字符串信息, 格式为MMM = { ‘k1’:’(目的 地中转场代码)’, ‘k2’:’(目的 地原始网点代码)’, ‘k3’:’(目 的地单元区域)’, ‘k4’:’(附件 通过三维码(express_type_code、 limit_type_code、 cargo_type_code)映射时效类型)’, ‘k5’:’(运单 号)’, ‘k6’:’(AB标识)’, ‘k7’:’( 校验码)’}
-	ProCode             string      `json:"proCode"`             // F 时效类型: 值为二维码中的K4
-	PrintIcon           string      `json:"printIcon"`           // F 打印图标, 根据托寄物判断需 要打印的图标(重货, 蟹类, 生鲜, 易碎，Z标) 返回值有8位，每一位只有0和1两种， 0表示按运单默认的规则， 1表示显示。后面两位默认0备用。 顺序如下：重货, 蟹类, 生鲜, 易碎, 医药类, Z标, 酒标, 0 如：00000000表示不需要打印重货，蟹类，生鲜，易碎, 医药, Z标, 酒标, 备用
-	ABFlag              string      `json:"abFlag"`              // F AB标
-	WaybillIconList     interface{} `json:"waybillIconList"`     // F 面单图标
-	ErrMsg              string      `json:"errMsg"`              // F 查询出现异常时返回信息。 返回代码: 0 系统异常 1 未找到面单
-	DestPortCode        string      `json:"destPortCode"`        // F 目的地口岸代码
-	DestCountry         string      `json:"destCountry"`         // F 目的国别(国别代码如:JP)
-	DestPostCode        string      `json:"destPostCode"`        // F 目的地邮编
-	GoodsValueTotal     float64     `json:"goodsValueTotal"`     // F 总价值(保留两位小数, 数字类型, 可补位)
-	CurrencySymbol      string      `json:"currencySymbol"`      // F 币种
-	GoodsNumber         int         `json:"goodsNumber"`         // F 件数
-	DestAddrKeyWord     string      `json:"destAddrKeyWord"`     // F 目的地地址关键词
+	WaybillNo              string      `json:"waybillNo"`           // F 运单号
+	SourceTransferCode     string      `json:"sourceTransferCode"`  // F 原寄地中转场
+	SourceCityCode         string      `json:"sourceCityCode"`      // F 原寄地城市代码
+	SourceDeptCode         string      `json:"sourceDeptCode"`      // F 原寄地网点代码
+	SourceTeamCode         string      `json:"sourceTeamCode"`      // F 原寄地单元区域
+	DestCityCode           string      `json:"destCityCode"`        // F 目的地城市代码, eg:755
+	DestDeptCode           string      `json:"destDeptCode"`        // F 目的地网点代码, eg:755AQ
+	DestDeptCodeMapping    string      `json:"destDeptCodeMapping"` // F 目的地网点代码映射码
+	DestTeamCode           string      `json:"destTeamCode"`        // F 目的地单元区域, eg:001
+	DestTeamCodeMapping    string      `json:"destTeamCodeMapping"` // F 目的地单元区域映射码
+	DestTransferCode       string      `json:"destTransferCode"`    // F 目的地中转场
+	DestRouteLabel         string      `json:"destRouteLabel"`      // T 若返回路由标签，则此项必会返回。如果手打是一段码，检查是否地址异常。打单时的路由标签信息如果是大网的路由标签, 这里的值是目的地网点代码, 如果 是同城配的路由标签, 这里的值是根据同城配的设置映射出来的值, 不同的配置结果会不一样, 不能根据-符号切分(如:上海同城配, 可能是:集散点-目的地网点-接驳点, 也有可能是目的地网点代码-集散点-接驳点)
+	ProName                string      `json:"proName"`             // F 产品名称 对应RLS:pro_name
+	CargoTypeCode          string      `json:"cargoTypeCode"`       // F 快件内容: 如:C816、SP601
+	LimitTypeCode          string      `json:"limitTypeCode"`       // F 时效代码, 如:T4
+	ExpressTypeCode        string      `json:"expressTypeCode"`     // F 产品类型, 如:B1
+	CodingMapping          string      `json:"codingMapping"`       // T 入港映射码 eg:S10 地址详细必会返回
+	CodingMappingOut       string      `json:"codingMappingOut"`    // F 出港映射码
+	XBFlag                 string      `json:"xbFlag"`              // F XB标志 0:不需要打印XB 1:需要打印XB
+	PrintFlag              string      `json:"printFlag"`           // F 打印标志 返回值总共有9位, 每位只 有0和1两种, 0表示按丰密 面单默认的规则, 1是显示, 顺序如下, 如111110000 表示打印寄方姓名、寄方 电话、寄方公司名、寄方 地址和重量, 收方姓名、收 方电话、收方公司和收方 地址按丰密面单默认规则 1:寄方姓名 2:寄方电话 3:寄方公司名 4:寄方地址 5:重量 6:收方姓名 7:收方电话 8:收方公司名 9:收方地址
+	TwoDimensionCode       string      `json:"twoDimensionCode"`    // F 二维码 根据规则生成字符串信息, 格式为MMM = { ‘k1’:’(目的 地中转场代码)’, ‘k2’:’(目的 地原始网点代码)’, ‘k3’:’(目 的地单元区域)’, ‘k4’:’(附件 通过三维码(express_type_code、 limit_type_code、 cargo_type_code)映射时效类型)’, ‘k5’:’(运单 号)’, ‘k6’:’(AB标识)’, ‘k7’:’( 校验码)’}
+	ProCode                string      `json:"proCode"`             // F 时效类型: 值为二维码中的K4
+	PrintIcon              string      `json:"printIcon"`           // F 打印图标, 根据托寄物判断需 要打印的图标(重货, 蟹类, 生鲜, 易碎，Z标) 返回值有8位，每一位只有0和1两种， 0表示按运单默认的规则， 1表示显示。后面两位默认0备用。 顺序如下：重货, 蟹类, 生鲜, 易碎, 医药类, Z标, 酒标, 0 如：00000000表示不需要打印重货，蟹类，生鲜，易碎, 医药, Z标, 酒标, 备用
+	ABFlag                 string      `json:"abFlag"`              // F AB标
+	WaybillIconList        interface{} `json:"waybillIconList"`     // F 面单图标
+	ErrMsg                 string      `json:"errMsg"`              // F 查询出现异常时返回信息。 返回代码: 0 系统异常 1 未找到面单
+	DestPortCode           string      `json:"destPortCode"`        // F 目的地口岸代码
+	DestCountry            string      `json:"destCountry"`         // F 目的国别(国别代码如:JP)
+	DestPostCode           string      `json:"destPostCode"`        // F 目的地邮编
+	GoodsValueTotal        float64     `json:"goodsValueTotal"`     // F 总价值(保留两位小数, 数字类型, 可补位)
+	CurrencySymbol         string      `json:"currencySymbol"`      // F 币种
+	GoodsNumber            int         `json:"goodsNumber"`         // F 件数
+	DestAddrKeyWord        string      `json:"destAddrKeyWord"`     // F 目的地地址关键词
+	XbFlag                 string      `json:"xbFlag"`
+	CusBatch               string      `json:"cusBatch"`
+	CheckCode              string      `json:"checkCode"`
+	ProIcon                string      `json:"proIcon"`
+	FileIcon               string      `json:"fileIcon"`
+	FbaIcon                string      `json:"fbaIcon"`
+	IcsmIcon               string      `json:"icsmIcon"`
+	DestGisDeptCode        string      `json:"destGisDeptCode"`
+	NewIcon                interface{} `json:"newIcon"`
+	SendAreaCode           interface{} `json:"sendAreaCode"`
+	DestinationStationCode interface{} `json:"destinationStationCode"`
+	SxLabelDestCode        interface{} `json:"sxLabelDestCode"`
+	SxDestTransferCode     interface{} `json:"sxDestTransferCode"`
+	SxCompany              interface{} `json:"sxCompany"`
+	NewAbFlag              interface{} `json:"newAbFlag"`
+	RongType               interface{} `json:"rongType"`
 }
 
 type WaybillNoInfo struct {
@@ -223,14 +252,20 @@ type SearchRoutesReq struct {
 	CheckPhoneNo    string   `json:"checkPhoneNo"`    // 电话号码验证
 }
 
+type SearchRoutesResp struct {
+	RouteResps []*RoutesResp `json:"routeResps"`
+}
+
 type RoutesResp struct {
-	MailNo string `json:"mailNo"`
-	Routes []struct {
-		AcceptAddress string `json:"acceptAddress"`
-		AcceptTime    string `json:"acceptTime"`
-		Remark        string `json:"remark"`
-		OpCode        string `json:"opCode"`
-	} `json:"routes"`
+	MailNo string   `json:"mailNo"`
+	Routes []*Route `json:"routes"`
+}
+
+type Route struct {
+	AcceptAddress string `json:"acceptAddress"`
+	AcceptTime    string `json:"acceptTime"`
+	Remark        string `json:"remark"`
+	OpCode        string `json:"opCode"`
 }
 
 type UpdateOrderReq struct {
@@ -255,8 +290,8 @@ type UpdateOrderReq struct {
 	IsDocall                int              `json:"isDocall"`                // F 是否通过手持终端通知顺丰收派员上门收件， 支持以下值：1：要求其它为不要求
 	SpecialDeliveryTypeCode string           `json:"specialDeliveryTypeCode"` // F 特殊派送类型代码 身份验证 2. 极效前置单
 	SpecialDeliveryValue    string           `json:"specialDeliveryValue"`    // F 特殊派件具体表述 证件类型:证件后8位 如：1:09296231（1表示身份证，暂不支持其他证件） 2>.极效前置单时:Y:若不支持则返回普通运单N:若不支持则返回错误码
-	SendStartTm             time.Time        `json:"sendStartTm"`             // F 预约时间(上门揽收时间)
-	PickupAppointEndtime    time.Time        `json:"pickupAppointEndtime"`    // F 上门揽收截止时间
+	SendStartTm             string           `json:"sendStartTm"`             // F 预约时间(上门揽收时间)
+	PickupAppointEndtime    string           `json:"pickupAppointEndtime"`    // F 上门揽收截止时间
 }
 
 type UpdateOrderResp struct {
@@ -420,7 +455,7 @@ type ReverseOrder struct {
 	MonthlyCard     string         `json:"monthlyCard"`     // C 顺丰月结卡号
 	PayMethod       int            `json:"payMethod"`       // F 付款方式，支持以下值： 1:寄方付 2:收方付 3:第三方付
 	ExpressTypeId   int            `json:"expressTypeId"`   // F 快件产品类别，支持附录《快件产品类别表》的产品编码值，仅可使用与顺丰销售约定的快件产品。
-	SendStartTm     time.Time      `json:"sendStartTm"`     // F 要求上门取件开始时间，格式：YYYY-MM-DD HH24:MM:SS，示例：2012-7-30 09:30:00。
+	SendStartTm     string         `json:"sendStartTm"`     // F 要求上门取件开始时间，格式：YYYY-MM-DD HH24:MM:SS，示例：2012-7-30 09:30:00。
 	IsCheck         string         `json:"isCheck"`         // F 是否验货, 1-验货，其他-不验货
 	ShopName        string         `json:"shopName"`        // F 商家店铺名称
 	OrigWaybillNo   string         `json:"origWaybillNo"`   // C 原运单号

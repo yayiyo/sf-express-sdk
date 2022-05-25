@@ -2,8 +2,6 @@ package sf
 
 import (
 	"encoding/json"
-	"fmt"
-	"time"
 )
 
 // 通用寄件类API
@@ -16,13 +14,6 @@ import (
 //  ● 筛单
 //  ● 路由轨迹(可选)
 func (c *Client) CreateOrder(req *CreateOrderReq) (*Order, error) {
-	var err error
-	if !req.SendStartTm.Equal(time.Time{}) {
-		req.SendStartTm, err = time.Parse(sfTimeTmp, req.SendStartTm.String())
-		if err != nil {
-			return nil, err
-		}
-	}
 	data, err := c.Do(req, serviceCodeCreateOrder)
 	if err != nil {
 		return nil, err
@@ -53,30 +44,22 @@ func (c *Client) CreateOrder(req *CreateOrderReq) (*Order, error) {
 		3)根据运单号+运单对应的收寄人任一方电话号码后4位(参数checkPhoneNo中传入)查询,
 	系统校验信息匹配将返回对应运单路由信息。
 */
-func (c *Client) SearchRoutes(s *SearchRoutesReq) ([]*RoutesResp, error) {
+func (c *Client) SearchRoutes(s *SearchRoutesReq) (*SearchRoutesResp, error) {
 	data, err := c.Do(s, serviceCodeSearchRoutes)
 	if err != nil {
 		return nil, err
 	}
-	var (
-		rd = make(map[string]interface{})
-		ok bool
-	)
-	if rd, ok = data.(map[string]interface{}); !ok {
-		return nil, fmt.Errorf("the response data %v is not map[string]interface type", data)
-	}
-	resp := rd["routeResps"]
-	fmt.Println(resp)
-	d, err := json.Marshal(resp)
+
+	d, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
-	routes := make([]*RoutesResp, 0)
-	err = json.Unmarshal(d, &routes)
+	resp := &SearchRoutesResp{}
+	err = json.Unmarshal(d, resp)
 	if err != nil {
 		return nil, err
 	}
-	return routes, nil
+	return resp, nil
 }
 
 // UpdateOrder 订单确认/取消接口
@@ -88,21 +71,6 @@ func (c *Client) SearchRoutes(s *SearchRoutesReq) ([]*RoutesResp, error) {
 	注意：订单取消之后，订单号也是不能重复利用的。
 */
 func (c *Client) UpdateOrder(u *UpdateOrderReq) (*UpdateOrderResp, error) {
-	var err error
-	if !u.SendStartTm.Equal(time.Time{}) {
-		u.SendStartTm, err = time.Parse(sfTimeTmp, u.SendStartTm.String())
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if !u.PickupAppointEndtime.Equal(time.Time{}) {
-		u.PickupAppointEndtime, err = time.Parse(sfTimeTmp, u.PickupAppointEndtime.String())
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	data, err := c.Do(u, serviceCodeUpdateOrder)
 	if err != nil {
 		return nil, err
@@ -255,13 +223,6 @@ func (c *Client) WantedIntercept(w *WantedInterceptReq) error {
  *	● 路由注册（可选）
  */
 func (c *Client) CreateReverseOrder(cr *ReverseOrder) (*ReverseOrder, error) {
-	var err error
-	if !cr.SendStartTm.Equal(time.Time{}) {
-		cr.SendStartTm, err = time.Parse(sfTimeTmp, cr.SendStartTm.String())
-		if err != nil {
-			return nil, err
-		}
-	}
 	data, err := c.Do(cr, serviceCodeCreateReverseOrder)
 	if err != nil {
 		return nil, err

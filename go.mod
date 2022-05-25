@@ -1,4 +1,4 @@
-module eeq
+module sf-express-sdk
 
 go 1.16
 
