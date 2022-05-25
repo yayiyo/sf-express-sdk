@@ -12,8 +12,9 @@ func TestSearchRoutes(t *testing.T) {
 	data, err := c.SearchRoutes(&SearchRoutesReq{
 		Language:       "0",
 		TrackingType:   "1",
-		TrackingNumber: []string{"444003077898", "441003077850"},
+		TrackingNumber: []string{"SF1424638720536"},
 		MethodType:     "1",
+		CheckPhoneNo:   "8648",
 	})
 	if err != nil {
 		log.Fatal(err)

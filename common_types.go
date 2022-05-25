@@ -244,12 +244,12 @@ type ExtraInfo struct {
 }
 
 type SearchRoutesReq struct {
-	Language        string   `json:"language"`        // 返回描述语语言 0：中文 1：英文 2：繁体
-	TrackingType    string   `json:"trackingType"`    // 查询号类别: 1:根据顺丰运单号查询,trackingNumber将被当作顺丰运单号处理 2:根据客户订单号查询,trackingNumber将被当作客户订单号处理
-	TrackingNumber  []string `json:"trackingNumber"`  // 查询号: trackingType=1,则此值为顺丰运单号 如果trackingType=2,则此值为客户订单号
-	MethodType      string   `json:"methodType"`      // 路由查询类别: 1:标准路由查询 2:定制路由查询
-	ReferenceNumber string   `json:"referenceNumber"` // 参考编码(目前针对亚马逊客户,由客户传)
-	CheckPhoneNo    string   `json:"checkPhoneNo"`    // 电话号码验证
+	Language        string   `json:"language"`        // F 返回描述语语言 0：中文 1：英文 2：繁体
+	TrackingType    string   `json:"trackingType"`    // T 查询号类别: 1:根据顺丰运单号查询,trackingNumber将被当作顺丰运单号处理 2:根据客户订单号查询,trackingNumber将被当作客户订单号处理
+	TrackingNumber  []string `json:"trackingNumber"`  // T 查询号: trackingType=1,则此值为顺丰运单号 如果trackingType=2,则此值为客户订单号
+	MethodType      string   `json:"methodType"`      // F 路由查询类别: 1:标准路由查询 2:定制路由查询
+	ReferenceNumber string   `json:"referenceNumber"` // F 参考编码(目前针对亚马逊客户,由客户传)
+	CheckPhoneNo    string   `json:"checkPhoneNo"`    // F 电话号码验证
 }
 
 type SearchRoutesResp struct {
