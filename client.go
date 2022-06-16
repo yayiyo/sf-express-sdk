@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -11,58 +12,106 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 )
 
+const (
+	defaultURL       = "https://sfapi-sbox.sf-express.com/std/service"
+	defaultPartnerID = "LBLERiwZfH"
+	defaultCheckWord = "oNv0SZTAyeUwRCTUNGvswI1D5oQPHU90"
+)
+
+type Opt func(client *Client) error
+
 type Client struct {
-	URL       string `json:"url"`
-	PartnerID string `json:"partnerID"`
-	CheckWord string `json:"check_word"`
-	*http.Client
+	url       string
+	partnerID string
+	checkWord string
+	client    *http.Client
 }
 
-func NewClient(url, partnerID, checkWord string) *Client {
-	return &Client{
-		URL:       url,
-		PartnerID: partnerID,
-		CheckWord: checkWord,
-		Client:    &http.Client{},
+func NewClientWithOpts(opts ...Opt) (*Client, error) {
+	c := &Client{
+		url:       defaultURL,
+		partnerID: defaultPartnerID,
+		checkWord: defaultCheckWord,
+		client:    &http.Client{},
+	}
+
+	for _, opt := range opts {
+		if err := opt(c); err != nil {
+			return nil, err
+		}
+	}
+	return c, nil
+}
+
+func WithURL(u string) Opt {
+	return func(c *Client) error {
+		if _, err := url.Parse(u); err != nil {
+			return errors.New("url invalid")
+		}
+		c.url = u
+		return nil
+	}
+}
+
+func WithPartnerID(partnerID string) Opt {
+	return func(c *Client) error {
+		if partnerID == "" {
+			return errors.New("partnerID invalid")
+		}
+		c.partnerID = partnerID
+		return nil
+	}
+}
+
+func WithCheckWord(checkWord string) Opt {
+	return func(c *Client) error {
+		if checkWord == "" {
+			return errors.New("checkWord invalid")
+		}
+		c.checkWord = checkWord
+		return nil
+	}
+}
+
+func WithHTTPClient(client *http.Client) Opt {
+	return func(c *Client) error {
+		c.client = client
+		return nil
 	}
 }
 
 func (c *Client) do(msgData []byte, serviceCode string) (int, []byte, error) {
 	// first md5, then base64
 	timestamp := time.Now().Unix()
-	str := url.QueryEscape(fmt.Sprintf("%s%d%s", string(msgData), timestamp, c.CheckWord))
+	str := url.QueryEscape(fmt.Sprintf("%s%d%s", string(msgData), timestamp, c.checkWord))
 	md := md5.New()
 	_, err := md.Write([]byte(str))
 	if err != nil {
-		err = errors.Wrap(err, "md5 err")
 		return http.StatusInternalServerError, nil, err
 	}
 	digest := base64.StdEncoding.EncodeToString(md.Sum(nil))
 	// generate request id
 	uuID, err := uuid.NewUUID()
 	if err != nil {
-		err = errors.Wrap(err, "generate uuid err")
 		return http.StatusInternalServerError, nil, err
 	}
 
 	postData := url.Values{}
-	postData.Add("partnerID", c.PartnerID)
+	postData.Add("partnerID", c.partnerID)
 	postData.Add("requestID", uuID.String())
 	postData.Add("serviceCode", serviceCode)
 	postData.Add("timestamp", fmt.Sprintf("%d", timestamp))
 	postData.Add("msgDigest", digest)
 	postData.Add("msgData", string(msgData))
 
-	resp, err := c.PostForm(c.URL, postData)
+	resp, err := c.client.PostForm(c.url, postData)
 	if err != nil {
 		return resp.StatusCode, nil, err
 	}
 	respData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		err = errors.Wrap(err, "read response body err")
 		return resp.StatusCode, nil, err
 	}
 	return resp.StatusCode, respData, nil
@@ -71,12 +120,10 @@ func (c *Client) do(msgData []byte, serviceCode string) (int, []byte, error) {
 func (c *Client) Do(data interface{}, serviceCode string) (interface{}, error) {
 	msgData, err := json.Marshal(data)
 	if err != nil {
-		err = errors.Wrap(err, "marshal data err")
 		return nil, err
 	}
 	code, respBytes, err := c.do(msgData, serviceCode)
 	if err != nil {
-		err = errors.Wrap(err, "do request err")
 		return nil, err
 	}
 	if code != http.StatusOK {
@@ -85,7 +132,6 @@ func (c *Client) Do(data interface{}, serviceCode string) (interface{}, error) {
 	resp := &BaseResp{}
 	err = json.Unmarshal(respBytes, resp)
 	if err != nil {
-		err = errors.Wrap(err, "unmarshal response err")
 		return nil, err
 	}
 
@@ -96,7 +142,6 @@ func (c *Client) Do(data interface{}, serviceCode string) (interface{}, error) {
 	apiData := &ApiResultData{}
 	err = json.Unmarshal([]byte(resp.ApiResultData), apiData)
 	if err != nil {
-		err = errors.Wrap(err, "unmarshal response err")
 		return nil, err
 	}
 

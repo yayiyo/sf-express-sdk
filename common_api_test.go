@@ -6,8 +6,6 @@ import (
 	"testing"
 )
 
-var c = NewClient("https://sfapi-sbox.sf-express.com/std/service", "LBLERiwZfH", "oNv0SZTAyeUwRCTUNGvswI1D5oQPHU90")
-
 func TestSearchRoutes(t *testing.T) {
 	data, err := c.SearchRoutes(&SearchRoutesReq{
 		Language:       "0",
