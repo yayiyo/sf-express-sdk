@@ -1,4 +1,4 @@
-module sf-express-sdk
+module github.com/echaser/sf-express-sdk
 
 go 1.16
 
